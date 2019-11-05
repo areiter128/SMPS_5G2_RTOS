@@ -40,8 +40,6 @@
 #include "apl/config/UserAppManager.h"
 
 /* User Tasks */
-#include "apl/tasks/task_Idle.h"
-#include "apl/tasks/task_MyTask.h"
 
 /* ***********************************************************************************************
  * GLOBAL APPLICATION LAYER USER OPTIONS

@@ -137,10 +137,7 @@ typedef enum {
     TASK_INIT_APPLICATION, // Task initializing system-wide application data structure
 
     /* ===== USER FUNCTIONS LIST ===== */
-    TASK_MY_TASK_INITIALIZE,
-    TASK_MY_TASK_START,
-    TASK_MY_TASK_EXECUTE,
-    TASK_MY_TASK_RESET,
+
         
     /* ===== END OF USER FUNCTIONS ===== */
 

@@ -19,7 +19,6 @@
       </logicalFolder>
       <logicalFolder name="apl" displayName="apl" projectFiles="true">
         <logicalFolder name="tasks" displayName="app" projectFiles="true">
-          <itemPath>../h/apl/app/app_MyTask.h</itemPath>
         </logicalFolder>
         <logicalFolder name="config" displayName="config" projectFiles="true">
           <itemPath>../h/apl/config/UserFaultObjects.h</itemPath>
@@ -80,7 +79,6 @@
       </logicalFolder>
       <logicalFolder name="apl" displayName="apl" projectFiles="true">
         <logicalFolder name="tasks" displayName="app" projectFiles="true">
-          <itemPath>../src/apl/app/app_MyTask.c</itemPath>
         </logicalFolder>
         <logicalFolder name="config" displayName="config" projectFiles="true">
           <itemPath>../src/apl/config/UserStartupCode.c</itemPath>

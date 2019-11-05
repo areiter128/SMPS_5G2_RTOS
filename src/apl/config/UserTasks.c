@@ -47,6 +47,9 @@
 
 
 #include <xc.h> // include processor files - each processor file is guarded.  
+#include <stdint.h> // include standard integer data types
+#include <stdbool.h> // include standard boolean data types (true/false)
+#include "_root/generic/os_Scheduler.h" // Include standard functions of the OS scheduler
 
 /* ***********************************************************************************************
  * INCLUDE OF HEADERS ALSO CONTAINING GLOBALLY AVAILABLE FUNCTION CALLS
@@ -69,10 +72,6 @@ volatile uint16_t (*Task_Table[])(void) = {
     APPLICATION_Initialize, // initialize system-wide application data structure
     
     /* ==================== USER FUNCTIONS LIST ==================== */
-    task_MyTask_Initialize,
-    task_MyTask_Start,
-    task_MyTask_Execute,
-    task_MyTask_Stop,
 
 
     
@@ -150,7 +149,7 @@ volatile uint16_t task_queue_boot_size = (sizeof(task_queue_boot)/sizeof(task_qu
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_firmware_init[] = {
-    TASK_MY_TASK_INITIALIZE,  // Step #0
+    TASK_IDLE,  // Step #0
     TASK_IDLE   // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_firmware_init_size = 
@@ -175,7 +174,7 @@ volatile uint16_t task_queue_firmware_init_size =
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_startup_sequence[] = {
-    TASK_MY_TASK_START, // Step #0
+    TASK_IDLE, // Step #0
     TASK_IDLE  // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_startup_sequence_size = 
@@ -194,7 +193,7 @@ volatile uint16_t task_queue_startup_sequence_size =
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_idle[] = {
-    TASK_MY_TASK_EXECUTE,  // Step #0
+    TASK_IDLE,  // Step #0
     TASK_IDLE,   // empty task used as task list execution time buffer 
     TASK_IDLE,   // empty task used as task list execution time buffer 
     TASK_IDLE,   // empty task used as task list execution time buffer 
@@ -248,7 +247,7 @@ volatile uint16_t task_queue_run_size = (sizeof(task_queue_run)/sizeof(task_queu
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_run[] = {
-    TASK_MY_TASK_EXECUTE, // Step #0
+    TASK_IDLE, // Step #0
     TASK_IDLE  // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_run_size = (sizeof(task_queue_run)/sizeof(task_queue_run[0]));
@@ -271,13 +270,13 @@ volatile uint16_t task_queue_run_init(void)
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_fault[] = {
-    TASK_MY_TASK_EXECUTE,  // Step #0
+    TASK_IDLE,  // Step #0
     TASK_IDLE   // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_fault_size = (sizeof(task_queue_fault)/sizeof(task_queue_fault[0]));
 volatile uint16_t task_queue_fault_init(void)
 {
-    my_task.interval = 999;
+    Nop();
     return(1);
 }
 
@@ -291,13 +290,13 @@ volatile uint16_t task_queue_fault_init(void)
  * *********************************************************************************************** */
 
 volatile uint16_t task_queue_standby[] = {
-    TASK_MY_TASK_EXECUTE,  // Step #0
+    TASK_IDLE,  // Step #0
     TASK_IDLE   // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_standby_size = (sizeof(task_queue_standby)/sizeof(task_queue_standby[0]));
 volatile uint16_t task_queue_standby_init(void)
 {
-    task_MyTask_Stop();
+    Nop();
     return(1);
 }
 
