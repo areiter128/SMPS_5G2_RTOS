@@ -20,8 +20,9 @@
                 <sourceRootElem>../h/_root/config</sourceRootElem>
                 <sourceRootElem>../h/_root/generic</sourceRootElem>
                 <sourceRootElem>../h/apl</sourceRootElem>
+                <sourceRootElem>../h/apl/app</sourceRootElem>
                 <sourceRootElem>../h/apl/config</sourceRootElem>
-                <sourceRootElem>../h/apl/tasks</sourceRootElem>
+                <sourceRootElem>../h/apl/driver</sourceRootElem>
                 <sourceRootElem>../h/hal</sourceRootElem>
                 <sourceRootElem>../h/hal/config</sourceRootElem>
                 <sourceRootElem>../h/hal/initialization</sourceRootElem>
