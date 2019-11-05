@@ -110,6 +110,7 @@ extern volatile uint16_t cpu_time_buffer[];
 // which can be called by other instances. Use this function call if main() of the 
 // user application is executed and you need to start the operating system manually.
 extern volatile uint16_t OS_Execute(void);
+extern volatile uint16_t task_Idle(void);
 #else
 extern void OS_Execute(void);
 #endif

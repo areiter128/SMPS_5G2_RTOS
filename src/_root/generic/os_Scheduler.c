@@ -234,3 +234,26 @@ void __attribute__((user_init)) OS_Execute(void) {
 #endif
 
 }
+
+/*!task_Idle
+ * ***********************************************************************************************
+ * Summary:
+ * Source file of idle task
+ * 
+ * Description:
+ * This function is used to register a global function call of the default idle task. The idle task 
+ * only executes a single Nop() and is used to keep scheduler tick intervals open.
+ * 
+ * History:
+ * 07/28/2017	File created
+ * 11/04/2019   Moved task_IDle to os_Scheduler.c as OS built-in standard task
+ * ***********************************************************************************************/
+
+volatile uint16_t task_Idle(void) {
+// Idle tasks might be required to free up additional CPU load for higher
+// priority processes. THerefore it's recommended to leave at least 
+// one Idle cycle in each task list
+    Nop();
+    return(1);
+}
+
