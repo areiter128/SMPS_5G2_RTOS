@@ -1,0 +1,38 @@
+build/00173_USB_PD_BOB_R20/production/_ext/2106459847/c4swbb_pconfig.o:  \
+ ../src/apl/resources/c4swbb_pconfig.c  \
+../h/mcal/mcal.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/p33SMPS_plib.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/p33SMPS_devices.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_cpu_macros.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_dsp.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/../p33SMPS_devices.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_gpio.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_hsadc.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_hspwm_c.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_irq.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_mailboxes.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_oscillator.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_pmd.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_pps.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_timer.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_uart.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_oscillator.h  \
+ ../h/mcal/../../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_oscillator_default_cfg.h  \
+ ../h/mcal/config/devcfg_dsp.h  \
+../h/mcal/config/devcfg_irq.h  \
+ ../h/mcal/config/devcfg_oscillator.h  \
+../h/mcal/config/devcfg_pinmap.h  \
+ ../h/mcal/config/00173_USB_PD_BoB_R20_pinmap.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_irq.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_dsp.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_hsadc.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_hspwm_c.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_gpio.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_oscillator.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_pmd.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_timer.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_pps.h  \
+ ../../plib/p33SMPS_mcal.X/plibs/dsPIC33C/p33SMPS_mailboxes.h  \
+ ../h/apl/resources/c4swbb_control.h  \
+../h/apl/resources/c4swbb_pconfig.h  \
+ ../h/apl/resources/npnz16b.h 
