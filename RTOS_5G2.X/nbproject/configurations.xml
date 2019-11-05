@@ -78,7 +78,7 @@
         </logicalFolder>
       </logicalFolder>
       <logicalFolder name="apl" displayName="apl" projectFiles="true">
-        <logicalFolder name="tasks" displayName="app" projectFiles="true">
+        <logicalFolder name="f2" displayName="app" projectFiles="true">
         </logicalFolder>
         <logicalFolder name="config" displayName="config" projectFiles="true">
           <itemPath>../src/apl/config/UserStartupCode.c</itemPath>
