@@ -26,8 +26,8 @@
  *
  * Description:
  * This code example has been created to introduce the functionality of the
- * basic SMPS firmware framework 5 Grade 2. This project uses the basic function call
- * based scheduler to group, align and monitor user tasks. 
+ * basic SMPS firmware framework version 5 Grade 2. This project uses the basic
+ * function call based scheduler to group, align and monitor user tasks. 
  * 
  * The procedure shown in this examples initializes the internal oscillator and 
  * the task scheduler and then immediately launches the scheduler. During the 
