@@ -131,8 +131,9 @@
     <Elem>../h/_root/config</Elem>
     <Elem>../h/_root/generic</Elem>
     <Elem>../h/apl</Elem>
+    <Elem>../h/apl/app</Elem>
     <Elem>../h/apl/config</Elem>
-    <Elem>../h/apl/tasks</Elem>
+    <Elem>../h/apl/driver</Elem>
     <Elem>../h/hal</Elem>
     <Elem>../h/hal/config</Elem>
     <Elem>../h/hal/initialization</Elem>
