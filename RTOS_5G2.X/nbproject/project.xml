@@ -3,7 +3,7 @@
     <type>com.microchip.mplab.nbide.embedded.makeproject</type>
     <configuration>
         <data xmlns="http://www.netbeans.org/ns/make-project/1">
-            <name>FRWK5G2</name>
+            <name>RTOS_5G2</name>
             <creation-uuid>c75a9aa7-94cd-4ba7-9587-5a73431cf4a5</creation-uuid>
             <make-project-type>0</make-project-type>
             <c-extensions>c</c-extensions>
