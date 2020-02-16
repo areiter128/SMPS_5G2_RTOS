@@ -83,7 +83,8 @@ volatile uint16_t (*os_fault_object_init_functions[])(void) = {
     &OSComponentFailureFaultObject_Initialize,     // One of the internal OS component functions has returned a failure
     
 };
-volatile uint16_t os_fault_object_init_functions_size = (sizeof(os_fault_object_init_functions)/sizeof(os_fault_object_init_functions[0]));
+volatile uint16_t os_fault_object_init_functions_size = 
+    (sizeof(os_fault_object_init_functions)/sizeof(os_fault_object_init_functions[0]));
 
 
 

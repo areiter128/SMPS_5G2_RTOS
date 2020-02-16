@@ -33,23 +33,23 @@
 typedef enum {
     
     FLTCHK_DISABLED = 0b0000000000000000, // Fault Hander status OFF flag bit-mask
-    FLTCHK_ENABLED = 0b1000000000000000, // Fault Hander status ON flag bit-mask
+    FLTCHK_ENABLED  = 0b1000000000000000, // Fault Hander status ON flag bit-mask
 
     FAULT_NONE = 0b0000000000000000, // Fault bit indicating NO FAULT 
-    FAULT_HW  = 0b0000000000000001, // Fault bit indicating a board level hardware failure 
-    FAULT_SW  = 0b0000000000000010, // Fault bit indicating a software failure
-    FAULT_SI  = 0b0000000000000100, // Fault bit indicating a silicon level hardware failure
-    FAULT_SYS = 0b0000000000001000  // Fault bit indicating a system-level/-parameter failure
+    FAULT_HW   = 0b0000000000000001, // Fault bit indicating a board level hardware failure 
+    FAULT_SW   = 0b0000000000000010, // Fault bit indicating a software failure
+    FAULT_SI   = 0b0000000000000100, // Fault bit indicating a silicon level hardware failure
+    FAULT_SYS  = 0b0000000000001000  // Fault bit indicating a system-level/-parameter failure
 
 } __attribute__((packed))FAULT_OBJECT_STATUS_e;
 
 typedef union 
 {
     struct {
-        volatile unsigned fltlvl_hw     :1;	// Bit #0:  hardware/board level flag bit
-        volatile unsigned fltlvl_sw     :1;	// Bit #1:  firmware/software level flag bit
-        volatile unsigned fltlvl_si     :1;	// Bit #2:  silicon/chip level flag bit
-        volatile unsigned fltlvl_sys    :1;	// Bit #3:  system parameter level Flag bit
+        volatile bool fltlvl_hw     :1;	// Bit #0:  hardware/board level flag bit
+        volatile bool fltlvl_sw     :1;	// Bit #1:  firmware/software level flag bit
+        volatile bool fltlvl_si     :1;	// Bit #2:  silicon/chip level flag bit
+        volatile bool fltlvl_sys    :1;	// Bit #3:  system parameter level Flag bit
         volatile unsigned :1;	// Bit #4:  Reserved
         volatile unsigned :1;	// Bit #5:  Reserved
         volatile unsigned :1;	// Bit #6:  Reserved
@@ -59,9 +59,9 @@ typedef union
         volatile unsigned :1;	// Bit #10: Reserved
         volatile unsigned :1;	// Bit #11: Reserved
         volatile unsigned :1;	// Bit #12: Reserved
-        volatile unsigned fault_active   :1; // Bit #14: Flag bit indicating temporary fault condition is present
-        volatile unsigned fault_status   :1; // Bit #13: Flag bit indicating that a fault has been tripped (latched until gone)
-        volatile unsigned fltchk_enabled :1; // Bit #15: Fault check enable/disable flag bit
+        volatile bool fault_active   :1; // Bit #14: Flag bit indicating temporary fault condition is present
+        volatile bool fault_status   :1; // Bit #13: Flag bit indicating that a fault has been tripped (latched until reset by SW)
+        volatile bool fltchk_enabled :1; // Bit #15: Fault check enable/disable flag bit
     }__attribute__((packed))bits;
 	volatile uint16_t value;
 }FAULT_OBJECT_STATUS_t;
@@ -126,15 +126,15 @@ typedef enum {
 typedef union 
 {
     struct {
-        volatile unsigned flag         :1;	// Bit #0:  flag bit indicating a simple, uncritical notification
-        volatile unsigned warning      :1;	// Bit #1:  flag bit indicating a condition approaching critical level
-        volatile unsigned critical     :1;	// Bit #2:  flag bit indicating a condition has reached critical level
-        volatile unsigned catastrophic :1;	// Bit #3:  flag bit indicating a catastrophic failure has occurred
+        volatile bool flag         :1;	// Bit #0:  flag bit indicating a simple, uncritical notification
+        volatile bool warning      :1;	// Bit #1:  flag bit indicating a condition approaching critical level
+        volatile bool critical     :1;	// Bit #2:  flag bit indicating a condition has reached critical level
+        volatile bool catastrophic :1;	// Bit #3:  flag bit indicating a catastrophic failure has occurred
         volatile unsigned :1;	// Bit #4:  Reserved
         volatile unsigned :1;	// Bit #5:  Reserved
         volatile unsigned :1;	// Bit #6:  Reserved
         volatile unsigned :1;	// Bit #7:  Reserved
-        volatile unsigned user_class   :1;	// Bit #8:  flag bit indicating a user defined failure has occurred
+        volatile bool user_class   :1;	// Bit #8:  flag bit indicating a user defined failure has occurred
         volatile unsigned :1;	// Bit #9:  Reserved
         volatile unsigned :1;	// Bit #10: Reserved
         volatile unsigned :1;	// Bit #11: Reserved
