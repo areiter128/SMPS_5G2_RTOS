@@ -19,9 +19,9 @@
  * MICROCHIP PROVIDES THIS SOFTWARE CONDITIONALLY UPON YOUR ACCEPTANCE OF THESE 
  * TERMS. 
  * ***************************************************************************/
-/*!task_manager.c
+/*!os_TaskManager.c
  *****************************************************************************
- * File:   task_manager.c
+ * File:   os_TaskManager.c
  *
  * Summary:
  * Task manager initialization, operation mode switch-over and task execution routines
@@ -37,8 +37,8 @@
  * -
  *
  * See also:
- * task_manager.c
- * task_manager.h
+ * os_Scheduler.c
+ * os_Scheduler.h
  * 
  * Revision history: 
  * 07/27/16     Initial version
