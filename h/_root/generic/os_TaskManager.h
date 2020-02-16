@@ -182,7 +182,6 @@ extern volatile TASK_MANAGER_t task_mgr; // Declare a data structure holding the
 extern volatile uint16_t OS_Initialize(void);
 extern volatile uint16_t os_TaskManager_Initialize(void);
 
-//extern volatile uint16_t os_TaskManager_Initialize(void);
 extern volatile uint16_t os_ProcessTaskQueue(void);
 extern volatile uint16_t os_CheckOperationModeStatus(void);
 
