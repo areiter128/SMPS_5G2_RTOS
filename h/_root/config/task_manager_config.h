@@ -326,6 +326,13 @@
  * See also:
  * (none)
  * ***********************************************************************************************/
+
+#define CPU_LOAD_WARNING    950U    // Maximum CPU load which triggers a FAULT WARNING
+#define CPU_LOAD_NORMAL     800U    // Allowed maximum CPU load which does not trigger a FAULT WARNING
+                                    // CPU Load is captured as integer number between 0 and 1000
+                                    // representing a value between 0 and 100% with one digit accuracy
+                                    // Example: CPU workload of 853 = 85.3%
+
 #if __XC16_VERSION > 1050   // Example: v1.36 is represented by 1036
     #pragma message "=== The CPU Load Meter has not been tested with the recent compiler version ==="
     // If this message occurs in the output window, please verify the constants 
