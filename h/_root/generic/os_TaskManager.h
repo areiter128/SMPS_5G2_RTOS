@@ -51,14 +51,14 @@
 /* Data structures */
 
 typedef enum {
-    OP_MODE_UNKNOWN          = 0b0000000000000000, // Define for unknown state of the task scheduler => ERROR!
-    OP_MODE_BOOT             = 0b0000000000000001, // Operation mode during device start-up => basic task manager setup
-    OP_MODE_FIRMWARE_INIT    = 0b0000000000000010, // User-code modules and generic peripherals configuration (initialization in disabled state)
-    OP_MODE_STARTUP_SEQUENCE = 0b0000000000000100, // User-code module and generic peripheral start sequence
-    OP_MODE_IDLE             = 0b0000000000001000, // Entering Normal operation mode, "NO ACTION" operating mode from which active op-modes are enabled
-    OP_MODE_RUN              = 0b0000000000010000, // System is powered and performing "normal functions"
-    OP_MODE_FAULT            = 0b0100000000000000, // A critical FAULT condition has been detected and system is partially shut down, waiting for a restart-attempt
-    OP_MODE_STANDBY          = 0b1000000000000000  // Standby mode, all sub-modules are disabled and CPU is in low-power mode
+    OP_MODE_UNKNOWN          = 0b00000000, // Define for unknown state of the task scheduler => ERROR!
+    OP_MODE_BOOT             = 0b00000001, // Operation mode during device start-up => basic task manager setup
+    OP_MODE_FIRMWARE_INIT    = 0b00000010, // User-code modules and generic peripherals configuration (initialization in disabled state)
+    OP_MODE_STARTUP_SEQUENCE = 0b00000100, // User-code module and generic peripheral start sequence
+    OP_MODE_IDLE             = 0b00001000, // Entering Normal operation mode, "NO ACTION" operating mode from which active op-modes are enabled
+    OP_MODE_RUN              = 0b00010000, // System is powered and performing "normal functions"
+    OP_MODE_FAULT            = 0b01000000, // A critical FAULT condition has been detected and system is partially shut down, waiting for a restart-attempt
+    OP_MODE_STANDBY          = 0b10000000  // Standby mode, all sub-modules are disabled and CPU is in low-power mode
 } SYSTEM_OPERATION_MODE_e;
 
 typedef union {
@@ -69,17 +69,8 @@ typedef union {
         volatile bool idle;             // Bit #3: Idle operation mode is the generic fall-back op-mode when no other op-mode applies to current conditions
         volatile bool run;              // Bit #4: Normal operation mode is set when system performs the desired default function (whatever this may be needs to be defined)
         volatile unsigned :1;           // Bit #5: (reserved)
-        volatile unsigned :1;           // Bit #6: (reserved)
-        volatile unsigned :1;           // Bit #7: (reserved)
-
-        volatile unsigned :1;           // Bit #8: (reserved)
-        volatile unsigned :1;           // Bit #9: (reserved)
-        volatile unsigned :1;           // Bit #10: (reserved)
-        volatile unsigned :1;           // Bit #11: (reserved)
-        volatile unsigned :1;           // Bit #12: (reserved)
-        volatile unsigned :1;           // Bit #13: (reserved)
-        volatile bool fault;            // Bit #14: Fault mode will be entered when a critical fault condition has been detected
-        volatile bool standby;          // Bit #15: During standby mode the converter is disabled
+        volatile bool fault;            // Bit #6: Fault mode will be entered when a critical fault condition has been detected
+        volatile bool standby;          // Bit #7: During standby mode the converter is disabled
     } __attribute__((packed)) bits;
 	volatile SYSTEM_OPERATION_MODE_e value;
 }SYSTEM_OPERATION_MODE_t;
