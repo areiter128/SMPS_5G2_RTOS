@@ -96,7 +96,8 @@ typedef enum {
     EXEC_STAT_START_COMPLETE        = 0b0000000000000010, // Firmware has passed startup sequence
     EXEC_STAT_QUEUE_SWITCH          = 0b0000000000000100, // Task manager has just switched task queues
     EXEC_STAT_TSKMGR_PER_OVR        = 0b0000000000001000, // Task manager base timer period overrun flag bit
-    EXEC_STAT_OS_COMP_CHECK         = 0b0000000000010000, // Task manager internal component check flag bit
+    EXEC_STAT_RESCUE_TMR_OVR        = 0b0000000000010000, // Rescue timer period overrun flag bit
+    EXEC_STAT_OS_COMP_CHECK         = 0b0000000000100000, // Task manager internal component check flag bit
         
     EXEC_STAT_NOTIFICATION_PENDING  = 0b0010000000000000, // Some condition raised a notification flag
     EXEC_STAT_WARNING_PENDING       = 0b0100000000000000, // Some condition raised a warning flag
@@ -109,8 +110,8 @@ typedef union  {
         volatile bool startup_sequence_complete :1; // Bit #1: Flag bit indicating that device and system startup has been completed
         volatile bool queue_switch :1; // Bit #2: queue_switch occurred (active for one queue loop)
         volatile bool task_mgr_period_overrun :1; // Bit #3:  Flag bit indicating task manager base time has overrun before an execution period was complete
-        volatile bool os_component_check :1; // Bit #4: OS component function return value validation (0=failure, 1=success)
-        volatile unsigned :1; // Bit #5:  (reserved)
+        volatile bool rescue_timer_overrun :1; // Bit #4: Flag bit indicating that the RESCUE TIMER has killed a task
+        volatile bool os_component_check :1; // Bit #5: OS component function return value validation (0=failure, 1=success)
         volatile unsigned :1; // Bit #6:  (reserved)
         volatile unsigned :1; // Bit #7:  (reserved)
 

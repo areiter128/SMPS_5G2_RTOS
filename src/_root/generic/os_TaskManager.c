@@ -55,6 +55,39 @@
 #include "_root/generic/os_TaskManager.h"
 #include "apl/config/UserTasks.h"
 
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+// Private declarations for internal functions
+#define CaptureStackFrame(x) __extension__ ({ \
+    volatile uint16_t* __x = (x), __v; \
+    __asm__ ( \
+        "mov %0, w0 \n" \
+        "mov w14, [w0] \n" \
+        "mov w15, [w0+2] \n" \
+         : "=d" (__v) : "d" (__x)); __v; \
+})
+
+#define RestoreStackFrame(x) __extension__ ({ \
+    volatile uint16_t* __x = (x), __v; \
+    __asm__ ( \
+        "ctxtswp #0;\n\t" \
+        "mov %0, w0 \n" \
+        "mov [w0], w14 \n" \
+        "mov [w0+2], w15 \n" \
+        "goto TASK_MGR_JUMP_TARGET \n" \
+        : "=d" (__v) : "d" (__x)); __v; \
+})
+
+// Data structure used as WREG data buffer of the Rescue Timer
+typedef struct {
+    volatile uint16_t wreg14;   // Frame pointer buffer
+    volatile uint16_t wreg15;   // Stack pointer buffer
+    volatile uint16_t cpu_stat; // CPU Status register SR
+} __attribute__((packed)) WREG_SET_t;
+
+volatile WREG_SET_t rescue_state;   // Rescue state data structure
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 // Private label for resetting a task queue
 #define TASK_ZERO   0   
 
@@ -87,12 +120,34 @@ volatile uint16_t os_ProcessTaskQueue(void) {
     // Capture task start time for time quota monitoring
     t_start = *task_mgr.os_timer.reg_counter; // Capture timer counter before task execution
 
-    // Execute next task in the queue
-    if ((tasks[task_mgr.task_queue.active_task_id].enabled) && 
-        (Task_Table[task_mgr.task_queue.active_task_id] != NULL)) {
-        retval = Task_Table[task_mgr.task_queue.active_task_id](); // Execute currently selected task
-    }
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // THIS IS WHERE THE NEXT TASK IS CALLED
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        CaptureStackFrame((volatile uint16_t*)&rescue_state); // Capture recent stack frame
+        rescue_state.cpu_stat = SR;              // Capture CPU status register
         
+        *task_mgr.os_timer.reg_period = task_mgr.os_timer.rescue_period; // Program Rescue Timer period
+        TASK_MGR_TMR_IE = true; // Enable Rescue timer interrupt
+    
+        // Execute next task in the queue
+        if ((tasks[task_mgr.task_queue.active_task_id].enabled) && 
+            (Task_Table[task_mgr.task_queue.active_task_id] != NULL)) {
+            retval = Task_Table[task_mgr.task_queue.active_task_id](); // Execute currently selected task
+        }
+
+        Nop();  // A few NOPs distance from the previous IF statement 
+        Nop();  // are required in code optimization level #3
+        
+        __asm__ ("TASK_MGR_JUMP_TARGET: \n");   // This is the label used by the rescue timer when 
+                                                // an active task is being killed
+        
+        TASK_MGR_TMR_IE = false;                // Disable Rescue timer interrupt
+        SR = rescue_state.cpu_stat;             // Restore CPU status register
+        *task_mgr.os_timer.reg_period = task_mgr.os_timer.master_period; // Program OS Timer period
+        
+    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    
+    
     // Capture time to determine elapsed task executing time
     t_stop = *task_mgr.os_timer.reg_counter;
     
@@ -389,4 +444,39 @@ volatile uint16_t task_Idle(void) {
     Nop();
     return(1);
 }
+
+volatile uint16_t task_Stall(void) {
+// Idle tasks might be required to free up additional CPU load for higher
+// priority processes. THerefore it's recommended to leave at least 
+// one Idle cycle in each task list
+    Nop();
+    while(1);
+    return(1);
+}
+
+/*!_RescueTimer_Interrupt()
+ * ************************************************************************************************
+ * Summary:
+ * Kills the active task and returns to os_ProcessTaskQueue
+ *
+ * Parameters:
+ *	(none)
+ * 
+ * Description:
+ * In this interrupt service routine the most recent task is killed and a jump back to function
+ * os_ProcessTaskQueue is enforced, right after the task function call to enable error handling.
+ * ***********************************************************************************************/
+
+void __attribute__((__interrupt__, auto_psv)) _RescueTimer_Interrupt() 
+{
+    TASK_MGR_TMR_IE = 0; // Disable timer interrupt (fall back to polling on IF bit in scheduler)
+    task_mgr.status.bits.rescue_timer_overrun = true; // Set task manager period overrun flag bit
+    tasks[task_mgr.task_queue.active_task_id].enabled = false; // Disable broken task
+    RestoreStackFrame((volatile uint16_t*)&rescue_state); // Restore frame and stack pointer and 
+                                             // jump back to os_ProcessTaskQueue())
+}
+
+// END OF FILE
+
+
 
