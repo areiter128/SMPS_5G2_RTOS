@@ -85,18 +85,17 @@ typedef struct {
 
 typedef union {
     struct {
-        volatile uint16_t retval; // Function return value
-        volatile uint8_t task_id; // task ID of the function called
+        volatile uint8_t task_id; // task ID of the most recent function
         volatile uint8_t op_mode; // recent operating mode when the function was called
     } __attribute__((packed))segment;
-    volatile uint32_t value;
+    volatile uint16_t value;
 } TASKMGR_PROCESS_CODE_t;
 
-typedef struct {
-    volatile uint16_t quota; // Maximum allowed task execution period
-    volatile uint16_t task_time; // Execution time meter result of most recent called task
-    volatile uint16_t maximum; // Task time meter maximum is tracked and logged
-} __attribute__((packed))TASK_CONTROL_t;
+//typedef struct {
+//    volatile uint16_t quota; // Maximum allowed task execution period
+//    volatile uint16_t task_time; // Execution time meter result of most recent called task
+//    volatile uint16_t maximum; // Task time meter maximum is tracked and logged
+//} __attribute__((packed))TASK_CONTROL_t;
 
 typedef enum {
     EXEC_STAT_FAULT_OVERRIDE        = 0b0000000000000001, // Some fault condition is overriding task settings and actions
