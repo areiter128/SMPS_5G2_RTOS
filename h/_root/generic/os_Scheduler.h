@@ -95,7 +95,7 @@ extern volatile bool run_scheduler;
 
 // in debugging mode two generic arrays are available for CPU load and task execution time
 // measurements
-#if (__DEBUG && (USE_TASK_MANAGER_TIMING_DEBUG_ARRAYS == 1))
+#if defined (__DEBUG) && (USE_TASK_MANAGER_TIMING_DEBUG_ARRAYS == 1)
 #define CPU_LOAD_DEBUG_BUFFER_LENGTH     128
 extern volatile uint16_t task_time_buffer[];
 extern volatile uint16_t cpu_time_buffer[];
