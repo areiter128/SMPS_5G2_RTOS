@@ -141,6 +141,7 @@ typedef enum {
 
     /* ===== USER FUNCTIONS LIST ===== */
 
+    TASK_STALL,
         
     /* ===== END OF USER FUNCTIONS ===== */
 

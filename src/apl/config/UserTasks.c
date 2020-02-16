@@ -73,7 +73,7 @@ volatile uint16_t (*Task_Table[])(void) = {
     
     /* ==================== USER FUNCTIONS LIST ==================== */
 
-
+task_Stall,
     
     /* ==================== END OF USER FUNCTIONS ==================== */
 
@@ -196,9 +196,7 @@ volatile uint16_t task_queue_startup_sequence_size =
 
 volatile uint16_t task_queue_idle[] = {
     TASK_IDLE,  // Step #0
-    TASK_IDLE,   // empty task used as task list execution time buffer 
-    TASK_IDLE,   // empty task used as task list execution time buffer 
-    TASK_IDLE,   // empty task used as task list execution time buffer 
+    TASK_STALL,   // empty task used as task list execution time buffer 
     TASK_IDLE   // empty task used as task list execution time buffer 
 };
 volatile uint16_t task_queue_idle_size = (sizeof(task_queue_idle)/sizeof(task_queue_idle[0]));
