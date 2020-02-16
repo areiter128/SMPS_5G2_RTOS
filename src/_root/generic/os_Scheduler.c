@@ -158,47 +158,51 @@ void __attribute__((user_init)) OS_Execute(void) {
         // ToDo: Add compile switch for option __DEBUG to disable watchdog in debug sessions
         //Remove: fres &= swdt_reset();
         
-        // Increment task table pointer
-        task_mgr.task_queue_tick_index++;
 
-        // if the list index is at/beyond the recent list boundary, roll-over and/or switch task list
-        if ( (task_mgr.task_queue_tick_index > (task_mgr.task_queue_ubound)) ||
+        // if the active queue pointer is at/beyond the queue boundary, roll-over and/or switch task list
+        if ( ((task_mgr.task_queue.active_index + 1) > (task_mgr.task_queue.ubound)) ||
              (task_mgr.pre_op_mode.value != task_mgr.op_mode.value) )
-        // Check for list boundary
+        // Check for list boundary or operating mode switch
         {
             // at the roll-over point (one tick above the array size) the operation mode switch check
             // is executed by default
 
             fres &= os_CheckOperationModeStatus();
-            task_mgr.task_queue_tick_index = 0; // If end of list has been reached, jump back to first item
+            task_mgr.task_queue.active_index = 0; // If end of list has been reached, jump back to first item
+            task_mgr.task_queue.active_task_id = tasks[task_mgr.task_queue.active_index].id;
         }
-
-        
-    #if (USE_TASK_EXECUTION_CLOCKOUT_PIN == 1)
-    #ifdef TS_CLOCKOUT_PIN_WR
-    TS_CLOCKOUT_PIN_WR = PINSTATE_LOW;                  // Drive debug pin low
-    #endif
-    #endif
-
-        
-        
-        #if (USE_TASK_MANAGER_TIMING_DEBUG_ARRAYS == 1)
-        // In debugging mode CPU load and task time is measured and logged in two arrays
-        // to examine the recent code execution profile
-        if(cnt == CPU_LOAD_DEBUG_BUFFER_LENGTH)
-        {
-            Nop();  // place breakpoint here to hold firmware when arrays are filled
-            Nop();
-            Nop();
-            cnt = 0;
-        }
+        // if the active queue pointer is within the queue boundary
         else
         {
-            task_time_buffer[cnt] = task_mgr.task_time_ctrl.task_time;   // Log task most recent time
-            cpu_time_buffer[cnt] = task_mgr.cpu_load.load;    // Log most recent CPU Load
-            cnt++;                                      // Increment array index
+            task_mgr.task_queue.active_index++; // Increment task queue pointer
         }
-        #endif
+
+        
+#if (USE_TASK_EXECUTION_CLOCKOUT_PIN == 1)
+#ifdef TS_CLOCKOUT_PIN_WR
+TS_CLOCKOUT_PIN_WR = PINSTATE_LOW;                  // Drive debug pin low
+#endif
+#endif
+        
+#if (USE_TASK_MANAGER_TIMING_DEBUG_ARRAYS == 1)
+// In debugging mode CPU load and task time is measured and logged in two arrays
+// to examine the recent code execution profile
+#pragma message "CPU Meter and Task Execution Profile Arrays are available"
+
+if(cnt == CPU_LOAD_DEBUG_BUFFER_LENGTH)
+{
+    Nop();  // place breakpoint here to hold firmware when arrays are filled
+    Nop();
+    Nop();
+    cnt = 0;
+}
+else
+{
+    task_time_buffer[cnt] = task_mgr.task_queue.active_task_time;   // Log task most recent time
+    cpu_time_buffer[cnt] = task_mgr.cpu_load.load;    // Log most recent CPU Load
+    cnt++;                                      // Increment array index
+}
+#endif
         
     }   // End of main loop
     // =====================================================================

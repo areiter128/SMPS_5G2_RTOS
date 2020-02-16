@@ -150,25 +150,29 @@ typedef struct {
     volatile TASKMGR_PROCESS_CODE_t proc_code;   // in case an execution error occurred, this code contains task ID
                                     // and queue ID which caused the error 
     
-    /* Active task queue properties */
-    volatile uint16_t exec_task_id; // Main task ID from task id definition table
-    volatile uint16_t *task_queue; // Pointer to the task queue (lookup table of task flow combinations)
-    volatile uint16_t task_queue_tick_index; // Most recent index of the task queue element to be executed 
-    volatile uint16_t task_queue_ubound; // Number of tasks in the current queue (n-1)
-
-    /* Settings for task scheduler timer */
-    volatile uint16_t task_timer_index; // specifies the timer used for the task manager (e.g. 1 for Timer1)
-    volatile uint16_t *reg_task_timer_period; // Pointer to Timer period register (e.g. PR1)
-    volatile uint16_t *reg_task_timer_counter; // Pointer to Timer counter register (e.g. TMR1))
-
-    /* Generic task execution time control settings and buffer variables */
-    volatile TASK_CONTROL_t task_time_ctrl; // Task time control settings and monitoring
-
     /* CPU Load Meter variables */
     volatile CPU_LOAD_SETTINGS_t cpu_load;
+
+    /* Active task queue properties */
+    struct {
+        volatile uint16_t *active_queue; // Pointer to the task queue (lookup table of task flow combinations)
+        volatile uint16_t active_index; // Most recent index of the task queue element to be executed 
+        volatile uint16_t active_task_id; // Main task ID from task id definition table
+        volatile uint16_t active_retval; // Most recent return value of active task
+        volatile uint16_t active_task_time; // Most recent execution period of active task
+        volatile uint16_t size; // Total number of tasks in the current queue (list size)
+        volatile uint16_t ubound; // Upper index of the current task queue (size-1)
+    } task_queue; // Most recent task queue properties
     
-    /* Global task manager status flags */
-    volatile TASKMGR_STATUS_t status;
+    /* Settings for task scheduler(rescue timer */
+    struct {
+        volatile uint16_t index; // specifies the timer used for the task manager (e.g. 1 for Timer1)
+        volatile uint16_t *reg_period; // Pointer to Timer period register (e.g. PR1)
+        volatile uint16_t *reg_counter; // Pointer to Timer counter register (e.g. TMR1))
+        volatile uint16_t master_period; // Task manager/OS Master Period (basic OS pace tick period)
+        volatile uint16_t rescue_period; // Rescue timer period (maximum period after which stalled tasks should be killed)
+        volatile uint16_t task_period_max; // Logging buffer variable of longest task execution period
+    } os_timer; // Operating system base timer settings
     
 } TASK_MANAGER_t;
 

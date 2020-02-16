@@ -49,6 +49,7 @@
 
 #include <xc.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #include "_root/config/task_manager_config.h"
 #include "_root/generic/os_TaskManager.h"
@@ -77,14 +78,14 @@ volatile uint16_t os_ProcessTaskQueue(void) {
     // the next scheduler tick.
 
     // Indices 0 ... (n-1) are calling queued user tasks
-    task_mgr.exec_task_id = task_mgr.task_queue[task_mgr.task_queue_tick_index]; // Pick next task in the queue
+    task_mgr.task_queue.active_task_id = task_mgr.task_queue.active_queue[task_mgr.task_queue.active_index]; // Pick next task in the queue
 
     // Determine error code for the upcoming task
     task_mgr.proc_code.segment.op_mode = (uint8_t)(task_mgr.op_mode.value);    // log operation mode
-    task_mgr.proc_code.segment.task_id = (uint8_t)(task_mgr.exec_task_id);   // log upcoming task-ID
+    task_mgr.proc_code.segment.task_id = (uint8_t)(task_mgr.task_queue.active_task_id);   // log upcoming task-ID
 
     // Capture task start time for time quota monitoring
-    t_start = *task_mgr.reg_task_timer_counter; // Capture timer counter before task execution
+    t_start = *task_mgr.os_timer.reg_counter; // Capture timer counter before task execution
 
     // Execute next task in the queue
     if ((tasks[task_mgr.task_queue.active_task_id].enabled) && 
@@ -93,20 +94,21 @@ volatile uint16_t os_ProcessTaskQueue(void) {
     }
         
     // Capture time to determine elapsed task executing time
-    t_stop = *task_mgr.reg_task_timer_counter;
+    t_stop = *task_mgr.os_timer.reg_counter;
     
     // Copy return value into process code for fault analysis
-    task_mgr.proc_code.segment.retval = retval;
+    tasks[task_mgr.task_queue.active_task_id].return_value = retval;
+    task_mgr.task_queue.active_retval = retval;
 
     // Check if OS task period timer has overrun while the recent task was executed
-    if(TASK_MGR_TIMER_ISR_FLAG_REGISTER & TASK_MGR_TIMER_ISR_FLAG_BIT_MASK)
+    if(TASK_MGR_TMR_IF)
     { 
         task_mgr.status.bits.task_mgr_period_overrun = true; // Set task manager period overrun flag bit
 
         // if timer has overrun while executing task, try to capture the total elapsed time
         // assuming the timer only overran once (status horizon)
         
-        t_stop = (*task_mgr.reg_task_timer_period - t_stop); // capture expired time until end of timer period
+        t_stop = (*task_mgr.os_timer.reg_period - t_stop); // capture expired time until end of timer period
         t_buf = (t_stop + t_start); // add elapsed time into the new period in 32-bit number space
         if (t_buf > 0xFFFF) // Check for 16-bit boundary
         { t_buf = 0xFFFF; } // Saturate execution time result at unsigned 16-bit maximum to prevent overrun
@@ -122,13 +124,17 @@ volatile uint16_t os_ProcessTaskQueue(void) {
         { f_ret = 0; }
     }
 
-    // track maximum execution time
-    task_mgr.task_time_ctrl.task_time = (volatile uint16_t)t_buf; // capture execution time
+    // Track individual task execution time
+    tasks[task_mgr.task_queue.active_task_id].task_period = (volatile uint16_t)t_buf; // capture execution time
+    task_mgr.task_queue.active_task_time = (volatile uint16_t)t_buf; // capture execution time
+    
+    // If execution time exceeds previous period maximum, override maximum time buffer value
+    if((volatile uint16_t)t_buf > tasks[task_mgr.task_queue.active_task_id].task_period_max)
+        tasks[task_mgr.task_queue.active_task_id].task_period_max = (volatile uint16_t)t_buf; 
 
-    if(task_mgr.task_time_ctrl.task_time > task_mgr.task_time_ctrl.maximum)
-    { 
-        task_mgr.task_time_ctrl.maximum = task_mgr.task_time_ctrl.task_time; // override maximum time buffer value
-    }
+    // If execution time exceeds global OS maximum period, override global maximum time buffer value
+    if((volatile uint16_t)t_buf > task_mgr.os_timer.task_period_max)
+        task_mgr.os_timer.task_period_max = (volatile uint16_t)t_buf; 
     
     return (f_ret);
 }
@@ -140,6 +146,8 @@ volatile uint16_t os_ProcessTaskQueue(void) {
 
 volatile uint16_t os_CheckOperationModeStatus(void) {
 
+    volatile uint16_t i=0;
+    
     // Specific conditions and op-mode switch-overs during system startup
     if (task_mgr.op_mode.value == OP_MODE_UNKNOWN)
     // if, for some reason, the operating mode has been cleared, restart the operating system
@@ -175,80 +183,96 @@ volatile uint16_t os_CheckOperationModeStatus(void) {
             
             case OP_MODE_BOOT:
                 // Switch to initialization mode operation
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_boot; // Set task queue INIT
-                task_mgr.task_queue_ubound = (task_queue_boot_size-1);
-                task_mgr.op_mode_switch_over_function = 0; // Do not perform any user function during switch-over to this mode
+                task_mgr.task_queue.active_queue = task_queue_boot; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_boot[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_boot_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_boot_size-1); // Load most recent task queue UBound
+                
+                // Do not perform any user function during switch-over to this mode
+                task_mgr.op_mode_switch_over_function = NULL; 
+
                 break;
 
             case OP_MODE_FIRMWARE_INIT:
                 // Switch to device startup mode operation (launching and enabling peripherals)
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_firmware_init; // Set task queue DEVICE_STARTUP
-                task_mgr.task_queue_ubound = (task_queue_firmware_init_size-1);
-                task_mgr.op_mode_switch_over_function = 0; // Do not perform any user function during switch-over to this mode
+                task_mgr.task_queue.active_queue = task_queue_firmware_init; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_firmware_init[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_firmware_init_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_firmware_init_size-1); // Load most recent task queue UBound
+
+                // Do not perform any user function during switch-over to this mode
+                task_mgr.op_mode_switch_over_function = NULL; 
+
                 break;
 
             case OP_MODE_STARTUP_SEQUENCE:
                 // Switch to system startup mode operation (launching external systems / power sequencing / soft-start)
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_startup_sequence; // Set task queue SYSTEM_STARTUP
-                task_mgr.task_queue_ubound = (task_queue_startup_sequence_size-1);
-                task_mgr.op_mode_switch_over_function = 0; // Do not perform any user function during switch-over to this mode
+                task_mgr.task_queue.active_queue = task_queue_startup_sequence; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_startup_sequence[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_startup_sequence_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_startup_sequence_size-1); // Load most recent task queue UBound
+
+                // Do not perform any user function during switch-over to this mode
+                task_mgr.op_mode_switch_over_function = NULL; 
+
                 break;
 
             case OP_MODE_IDLE:
                 // Switch to normal operation
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_idle; // Set task queue NORMAL
-                task_mgr.task_queue_ubound = (task_queue_idle_size-1);
-                task_mgr.op_mode_switch_over_function = &task_queue_idle_init; // Execute user function before switching to this operating mode
+                task_mgr.task_queue.active_queue = task_queue_idle; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_idle[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_idle_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_idle_size-1); // Load most recent task queue UBound
+
+                // Execute user function before switching to this operating mode
+                task_mgr.op_mode_switch_over_function = &task_queue_idle_init; 
+
                 break;
 
             case OP_MODE_RUN:
                 // Switch to normal operation
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_run; // Set task queue NORMAL
-                task_mgr.task_queue_ubound = (task_queue_run_size-1);
-                task_mgr.op_mode_switch_over_function = &task_queue_run_init; // Execute user function before switching to this operating mode
+                task_mgr.task_queue.active_queue = task_queue_run; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_run[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_run_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_run_size-1); // Load most recent task queue UBound
+
+                // Execute user function before switching to this operating mode
+                task_mgr.op_mode_switch_over_function = &task_queue_run_init; 
+                
                 break;
 
             case OP_MODE_FAULT:
                 // Switch to fault mode operation
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_fault; // Set task queue FAULT
-                task_mgr.task_queue_ubound = (task_queue_fault_size-1);
-                task_mgr.status.bits.fault_override = true; // set global fault override flag bit
-                task_mgr.op_mode_switch_over_function = &task_queue_fault_init; // Execute user function before switching to this operating mode
+                task_mgr.task_queue.active_queue = task_queue_fault; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_fault[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_fault_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_fault_size-1); // Load most recent task queue UBound
+
+                // set global fault override flag bit
+                task_mgr.status.bits.fault_override = true; 
+                
+                // Execute user function before switching to this operating mode
+                task_mgr.op_mode_switch_over_function = &task_queue_fault_init; 
+                
                 break;
 
             case OP_MODE_STANDBY:
                 // Switch to standby mode operation 
-                task_mgr.exec_task_id = TASK_ZERO; // Set task ID to DEFAULT (Idle Task))
-                task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-                task_mgr.task_time_ctrl.task_time = 0; // Reset recent task time meter result
-                task_mgr.task_time_ctrl.maximum = 0; // Reset max task time gauge
-                task_mgr.task_queue = task_queue_standby; // Set task queue STANDBY
-                task_mgr.task_queue_ubound = (task_queue_standby_size-1);
-                task_mgr.op_mode_switch_over_function = &task_queue_standby_init; // Execute user function before switching to this operating mode
+                task_mgr.task_queue.active_queue = task_queue_standby; // Set task queue BOOT
+                task_mgr.task_queue.active_task_id = task_queue_standby[0]; // Set task ID to first task of queue
+                task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+                task_mgr.task_queue.size = task_queue_standby_size; // Load most recent task queue size
+                task_mgr.task_queue.ubound = (task_queue_standby_size-1); // Load most recent task queue UBound
+                
+                // Execute user function before switching to this operating mode
+                task_mgr.op_mode_switch_over_function = &task_queue_standby_init; 
+                
                 break;
 
             default: // OP_MODE_IDLE
@@ -290,7 +314,8 @@ volatile uint16_t os_CheckOperationModeStatus(void) {
 
 volatile uint16_t os_TaskManager_Initialize(void) {
 
-    uint16_t fres = 1;
+    volatile uint16_t fres = 1;
+    volatile uint16_t i=0;
 
     // initialize private flag variable pre-op-mode used by task_CheckOperationModeStatus to identify changes in op_mode
     task_mgr.pre_op_mode.value = OP_MODE_BOOT;
@@ -298,21 +323,23 @@ volatile uint16_t os_TaskManager_Initialize(void) {
     // Initialize basic Task Manager Status
     task_mgr.op_mode.value = OP_MODE_BOOT; // Set operation mode to STANDBY
     task_mgr.proc_code.value = 0; // Reset process code
-    task_mgr.exec_task_id = TASK_IDLE; // Set task ID to DEFAULT (IDle Task))
-    task_mgr.task_queue_tick_index = 0; // Reset task queue pointer
-    task_mgr.task_time_ctrl.task_time = 0; // Reset maximum task time meter result
-    task_mgr.task_queue = task_queue_boot; // Set task queue INIT
-    task_mgr.task_queue_ubound = (task_queue_boot_size-1);
+    task_mgr.task_queue.active_queue = task_queue_boot; // Set task queue INIT
+    task_mgr.task_queue.size   = task_queue_boot_size;
+    task_mgr.task_queue.ubound = (task_queue_boot_size-1);
+    task_mgr.task_queue.active_task_id = task_mgr.task_queue.active_queue[0]; // Set task ID to DEFAULT (IDle Task))
+    task_mgr.task_queue.active_index = 0; // Reset task queue pointer
+    task_mgr.os_timer.task_period_max = 0; // Reset maximum task time meter result
 
     task_mgr.status.bits.queue_switch = false;
     task_mgr.status.bits.startup_sequence_complete = false;
     task_mgr.status.bits.fault_override = false;
     
     // Scheduler Timer Configuration
-    task_mgr.task_timer_index = TASK_MGR_TIMER_INDEX; // Index of the timer peripheral used
-    task_mgr.reg_task_timer_counter = &TASK_MGR_TIMER_COUNTER_REGISTER;
-    task_mgr.reg_task_timer_period = &TASK_MGR_TIMER_PERIOD_REGISTER;
-    task_mgr.task_time_ctrl.quota = *task_mgr.reg_task_timer_period; // Global task execution period 
+    task_mgr.os_timer.index = TASK_MGR_TIMER_INDEX; // Index of the timer peripheral used
+    task_mgr.os_timer.reg_counter = &TASK_MGR_TIMER_COUNTER_REGISTER;
+    task_mgr.os_timer.reg_period = &TASK_MGR_TIMER_PERIOD_REGISTER;
+    task_mgr.os_timer.master_period = TASK_MGR_MASTER_PERIOD; // Global task execution period 
+    task_mgr.os_timer.rescue_period = TASK_MGR_RESCUE_PERIOD; // Global task rescue period 
 
     // CPU Load Monitor Configuration
     task_mgr.cpu_load.load = 0;
