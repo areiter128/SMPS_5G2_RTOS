@@ -82,6 +82,8 @@ volatile uint16_t (*Task_Table[])(void) = {
     
 };
 
+// Array size of Task_Table
+volatile uint16_t task_table_size = (sizeof(Task_Table)/sizeof(Task_Table[0]));
 
 /*!Task Queues
  *  *****************************************************************************************************

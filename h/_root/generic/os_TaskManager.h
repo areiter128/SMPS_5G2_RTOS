@@ -91,12 +91,6 @@ typedef union {
     volatile uint16_t value;
 } TASKMGR_PROCESS_CODE_t;
 
-//typedef struct {
-//    volatile uint16_t quota; // Maximum allowed task execution period
-//    volatile uint16_t task_time; // Execution time meter result of most recent called task
-//    volatile uint16_t maximum; // Task time meter maximum is tracked and logged
-//} __attribute__((packed))TASK_CONTROL_t;
-
 typedef enum {
     EXEC_STAT_FAULT_OVERRIDE        = 0b0000000000000001, // Some fault condition is overriding task settings and actions
     EXEC_STAT_START_COMPLETE        = 0b0000000000000010, // Firmware has passed startup sequence
@@ -132,9 +126,23 @@ typedef union  {
 	volatile TASKMGR_STATUS_e value; // buffer for 16-bit word read/write operations
 } TASKMGR_STATUS_t;
 
+typedef struct {
+    volatile uint16_t id; // Task ID 
+    volatile uint16_t time_quota; // Maximum allowed task execution period
+    volatile uint16_t task_period; // Execution time meter result of most recent called task
+    volatile uint16_t task_period_max; // Task period meter maximum is tracked and logged
+    volatile uint16_t return_value; // Most recent return value of called task
+    volatile bool enabled;  // ENABLE/DISABLE flag; When disabled, task call will be replaced by an idle cycle
+} TASKMGR_TASK_CONTROL_t;
+
+extern volatile TASKMGR_TASK_CONTROL_t tasks[];
+
 
 typedef struct {
 
+    /* Global task manager status flags */
+    volatile TASKMGR_STATUS_t status;
+    
     /* System operation mode (selects the active task queue) */
     volatile SYSTEM_OPERATION_MODE_t pre_op_mode; // ID of previous operating mode (=op_mode after switch-over)
     volatile SYSTEM_OPERATION_MODE_t op_mode; // ID of current operating mode

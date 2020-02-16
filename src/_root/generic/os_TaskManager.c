@@ -59,6 +59,7 @@
 
 // Task Manager
 volatile TASK_MANAGER_t task_mgr; // Declare a data structure holding the settings of the task manager
+volatile TASKMGR_TASK_CONTROL_t tasks[TASK_TABLE_SIZE]; // Array of task object declared in UserTasks.c/h
 
 //------------------------------------------------------------------------------
 // execute task manager scheduler
@@ -86,8 +87,9 @@ volatile uint16_t os_ProcessTaskQueue(void) {
     t_start = *task_mgr.reg_task_timer_counter; // Capture timer counter before task execution
 
     // Execute next task in the queue
-    if (Task_Table[task_mgr.exec_task_id] != NULL) {
-        retval = Task_Table[task_mgr.exec_task_id](); // Execute currently selected task
+    if ((tasks[task_mgr.task_queue.active_task_id].enabled) && 
+        (Task_Table[task_mgr.task_queue.active_task_id] != NULL)) {
+        retval = Task_Table[task_mgr.task_queue.active_task_id](); // Execute currently selected task
     }
         
     // Capture time to determine elapsed task executing time
@@ -255,9 +257,20 @@ volatile uint16_t os_CheckOperationModeStatus(void) {
                 break;
                 
         }
-
+        
+        // Clear all task timing information from recent queue tasks
+        for (i=0; i<task_mgr.task_queue.size; i++)
+        {
+            tasks[task_mgr.task_queue.active_queue[i]].return_value = 0;
+            tasks[task_mgr.task_queue.active_queue[i]].task_period = 0;
+            tasks[task_mgr.task_queue.active_queue[i]].task_period_max = 0;
+        }
+        
+        // Execute Op-Mope transition Function (if available)
         if(task_mgr.op_mode_switch_over_function != NULL) // If op-mode switch-over function has been defined, ...
         { task_mgr.op_mode_switch_over_function(); } // Execute user function before switching to this operating mode
+        
+        // Set Op-Mode switch complete and raise flag
         task_mgr.pre_op_mode.value = task_mgr.op_mode.value; // Sync OpMode Flags
         task_mgr.status.bits.queue_switch = true; // set queue switch flag for one queue execution loop
 
@@ -308,6 +321,18 @@ volatile uint16_t os_TaskManager_Initialize(void) {
     task_mgr.cpu_load.loop_nomblk = TASK_MGR_CPU_LOAD_NOMBLK;
     task_mgr.cpu_load.load_factor = TASK_MGR_CPU_LOAD_FACTOR;
 
+    // Initialize all defined task objects
+    for (i=0; i<task_table_size; i++)
+    {
+        tasks[i].id = i;                // Set task ID
+        tasks[i].time_quota = TASK_MGR_MASTER_PERIOD; // Set default execution time quota
+        tasks[i].task_period = 0;       // Clear most recent execution period buffer
+        tasks[i].task_period_max = 0;   // Clear overall maximum execution period buffer
+        tasks[i].return_value = 0;      // Clear most recent return value buffer
+        tasks[i].enabled = true;        // Enable task execution
+    }
+    
+    
     #if (USE_TASK_EXECUTION_CLOCKOUT_PIN == 1)
         TS_CLOCKOUT_PIN_INIT_OUTPUT;
     #endif
