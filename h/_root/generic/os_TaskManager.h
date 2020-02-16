@@ -187,5 +187,8 @@ extern volatile uint16_t os_TaskManager_Initialize(void);
 extern volatile uint16_t os_ProcessTaskQueue(void);
 extern volatile uint16_t os_CheckOperationModeStatus(void);
 
+extern volatile uint16_t task_Idle(void);
+extern volatile uint16_t task_Stall(void);
+
 
 #endif	/* _ROOT_TASK_MANAGER_H_ */
