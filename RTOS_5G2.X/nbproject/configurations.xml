@@ -51,7 +51,6 @@
           <itemPath>../h/mcal/initialization/init_irq.h</itemPath>
           <itemPath>../h/mcal/initialization/init_timer.h</itemPath>
         </logicalFolder>
-        <itemPath>../h/mcal/cpu_macros.h</itemPath>
         <itemPath>../h/mcal/mcal.h</itemPath>
       </logicalFolder>
       <logicalFolder name="sfl" displayName="sfl" projectFiles="true">
@@ -153,7 +152,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>ICD4Tool</platformTool>
         <languageToolchain>XC16</languageToolchain>
-        <languageToolchainVersion>1.41</languageToolchainVersion>
+        <languageToolchainVersion>1.50</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
@@ -322,7 +321,7 @@
         <property key="dual-boot-partition" value="0"/>
         <property key="fast-math" value="false"/>
         <property key="generic-16-bit" value="false"/>
-        <property key="legacy-libc" value="true"/>
+        <property key="legacy-libc" value="false"/>
         <property key="mpreserve-all" value="false"/>
         <property key="oXC16glb-macros" value="__CODE_OPT_LEVEL_3__;__MA330048_R30__"/>
         <property key="output-file-format" value="elf"/>
@@ -400,8 +399,6 @@
         <property key="memories.programmemory" value="true"/>
         <property key="memories.programmemory.ranges" value="0-ffffffffffffffff"/>
         <property key="poweroptions.powerenable" value="false"/>
-        <property key="programmerToGoFilePath"
-                  value="D:/Firmware/SMPS Framework v5G2/project/RTOS_5G2.X/debug/MA330048_P33CK_R30/RTOS_5G2_ptg"/>
         <property key="programoptions.donoteraseauxmem" value="false"/>
         <property key="programoptions.eraseb4program" value="true"/>
         <property key="programoptions.ledbrightness" value="5"/>
