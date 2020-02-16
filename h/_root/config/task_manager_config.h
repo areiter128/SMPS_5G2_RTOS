@@ -278,30 +278,22 @@
  * (none)
  * ***********************************************************************************************/
 
-#define TASK_MGR_TIME_STEP                  (float)(100.0e-6)     // Schedule time step in [sec]
+#define TASK_MGR_MASTER_PACE                (float)(100.0e-6)     // Schedule time step in [sec]
+#define TASK_MGR_RESCUE_PACE                (float)(200.0e-6)     // Rescue timer time step in [sec]
     
-#define TASK_MGR_PERIOD                     (uint16_t)((float)system_frequencies.fcy * (float)TASK_MGR_TIME_STEP)
+#define TASK_MGR_MASTER_PERIOD              (uint16_t)((float)system_frequencies.fcy * (float)TASK_MGR_MASTER_PACE)
+#define TASK_MGR_RESCUE_PERIOD              (uint16_t)((float)system_frequencies.fcy * (float)TASK_MGR_RESCUE_PACE)
 
 #define TASK_MGR_TIMER_INDEX                1       // Index of the timer peripheral used
 #define TASK_MGR_TIMER_COUNTER_REGISTER     TMR1    // Timer counter register
 #define TASK_MGR_TIMER_PERIOD_REGISTER      PR1     // Timer Period register
-#define TASK_MGR_TIMER_ISR_FLAG_REGISTER    IFS0    // Timer Interrupt Flag Register
-#define TASK_MGR_ISR_PRIORITY               1       // Timer ISR priority (Always leave 1))
+#define TASK_MGR_ISR_PRIORITY               3       // Timer ISR priority (Always leave 1))
+#define TASK_MGR_TMR_IF                     _T1IF   // Timer ISR Flag Bit
+#define TASK_MGR_TMR_IE                     _T1IE   // Timer ISR Enable Bit
+#define TASK_MGR_TMR_IP                     _T1IP   // Timer ISR Priority setting
+#define _RescueTimer_Interrupt              _T1Interrupt    // Timer Interrupt Service Routine used for the Rescue Timer
 #define TASK_MGR_ISR_STATE                  0       // Timer ISR state (0=disabled, 1=enabled)
                                                     // (PLEASE DO NOT ENABLE)
-
-// Timer Interrupt Flag Register Bit Mask
-#if defined (__P33SMPS_CK1__) || defined (__P33SMPS_CK2__) || defined (__P33SMPS_CK5__)
-  #define TASK_MGR_TIMER_ISR_FLAG_BIT_MASK        0b0000000000000010
-#elif defined (__P33SMPS_CH2__) || defined (__P33SMPS_CH5__)
-  #define TASK_MGR_TIMER_ISR_FLAG_BIT_MASK        0b0000000000000010
-#elif defined (__P33SMPS_EP2__) || defined (__P33SMPS_EP5__) || defined (__P33SMPS_EP7__)
-  #define TASK_MGR_TIMER_ISR_FLAG_BIT_MASK        0b0000000000001000
-#elif defined (__P33SMPS_FJ__) || defined (__P33SMPS_FJA__) || defined (__P33SMPS_FJC__)
-  #define TASK_MGR_TIMER_ISR_FLAG_BIT_MASK        0b0000000000001000
-#else
-  #error === selected device family could not be indentified or is not supported by the task manager  ===
-#endif
     
 /*!CPU Meter Configuration
  * ***********************************************************************************************
