@@ -78,7 +78,7 @@ volatile uint16_t os_FaultObjects_Initialize(void)
     // InitiallysSet global fault flags (need to be cleared during operation)
     task_mgr.status.bits.global_fault = 1;
     task_mgr.status.bits.global_warning = 1;
-    task_mgr.status.bits.global_notify = 1;
+    task_mgr.status.bits.global_flag = 1;
     // ====================================================
     
     return(fres);
@@ -621,10 +621,10 @@ inline volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_clas
         task_mgr.status.bits.global_warning = false;    // clear global warning bit 
     }
 
-    if((!(fault_class_code & FLT_CLASS_FLAG)) && (task_mgr.status.bits.global_notify))
+    if((!(fault_class_code & FLT_CLASS_FLAG)) && (task_mgr.status.bits.global_flag))
     {
         // if fault is of class NOTIFICAATION FLAG, clear the flag
-        task_mgr.status.bits.global_notify = false;     // clear global notify bit
+        task_mgr.status.bits.global_flag = false;     // clear global notify bit
     }
 
     return(1);
