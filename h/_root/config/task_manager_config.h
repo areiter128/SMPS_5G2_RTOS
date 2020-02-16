@@ -336,27 +336,27 @@
 // CPU Load Monitor Counter Loop Performance Settings on dsPIC33CH MP Devices
 
     #ifdef __CODE_OPT_LEVEL_0__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            28      // Number of cycles for one TxIF-wait while loop iteration at code optimization #0
+        #define TASK_MGR_CPU_LOAD_NOMBLK            30      // Number of cycles for one TxIF-wait while loop iteration at code optimization #0
     #endif
     #ifdef __CODE_OPT_LEVEL_1__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            20      // Number of cycles for one TxIF-wait while loop iteration at code optimization #1
+        #define TASK_MGR_CPU_LOAD_NOMBLK            22      // Number of cycles for one TxIF-wait while loop iteration at code optimization #1
     #endif
     #ifdef __CODE_OPT_LEVEL_2__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            23      // Number of cycles for one TxIF-wait while loop iteration at code optimization #2
+        #define TASK_MGR_CPU_LOAD_NOMBLK            24      // Number of cycles for one TxIF-wait while loop iteration at code optimization #2
     #endif
     #ifdef __CODE_OPT_LEVEL_s__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            23      // Number of cycles for one TxIF-wait while loop iteration at code optimization #s
+        #define TASK_MGR_CPU_LOAD_NOMBLK            24      // Number of cycles for one TxIF-wait while loop iteration at code optimization #s
     #endif
     #ifdef __CODE_OPT_LEVEL_3__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            23      // Number of cycles for one TxIF-wait while loop iteration at code optimization #3
+        #define TASK_MGR_CPU_LOAD_NOMBLK            24      // Number of cycles for one TxIF-wait while loop iteration at code optimization #3
     #endif
     #ifdef __CODE_OPT_LEVEL_USR__
-        #define TASK_MGR_CPU_LOAD_NOMBLK            21      // Number of cycles for one TxIF-wait while loop iteration at user configured code optimization 
+        #define TASK_MGR_CPU_LOAD_NOMBLK            26      // Number of cycles for one TxIF-wait while loop iteration at user configured code optimization 
     #endif
 
 #endif
 
-#define TASK_MGR_CPU_LOAD_FACTOR    (uint16_t)(((float)(1000.000)/(float)(TASK_MGR_PERIOD))*pow(2, 16))
+#define TASK_MGR_CPU_LOAD_FACTOR    (uint16_t)(((float)(1000.000)/(float)(TASK_MGR_MASTER_PERIOD))*pow(2, 16))
 
 /*!Software CPU Reset Occurrence Limit
  * ***********************************************************************************************
