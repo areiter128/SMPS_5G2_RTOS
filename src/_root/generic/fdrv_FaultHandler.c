@@ -41,11 +41,11 @@
 #include "apl/config/UserFaultObjects.h"
 
 /* private function prototypes */
-volatile uint16_t CheckFaultCondition(volatile FAULT_OBJECT_t* fltobj);
-volatile uint16_t SetFaultCondition(volatile FAULT_OBJECT_t* fltobj);
-volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj);
-volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_class_code);
-volatile uint16_t ExecFaultFlagReleaseHandler(volatile FAULT_OBJECT_t* fltobj);
+inline volatile uint16_t CheckFaultCondition(volatile FAULT_OBJECT_t* fltobj);
+inline volatile uint16_t SetFaultCondition(volatile FAULT_OBJECT_t* fltobj);
+inline volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj);
+inline volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_class_code);
+inline volatile uint16_t ExecFaultFlagReleaseHandler(volatile FAULT_OBJECT_t* fltobj);
 
 /*!FaultObjects_Initialize
  * ***********************************************************************************************
@@ -113,7 +113,7 @@ volatile uint16_t os_FaultObjects_Initialize(void)
  * reappears while the fault filter counter has not reached its maximum threshold, flag bit flt_active 
  * will be set and the fault filter counter will reset to zero.
  * ***********************************************************************************************/
-inline volatile uint16_t CheckFaultCondition(volatile FAULT_OBJECT_t* fltobj)
+volatile uint16_t CheckFaultCondition(volatile FAULT_OBJECT_t* fltobj)
 {
     volatile uint16_t source_value = 0;
     volatile uint16_t compare_value = 0;
@@ -229,6 +229,8 @@ inline volatile uint16_t CheckFaultCondition(volatile FAULT_OBJECT_t* fltobj)
             return(0);
     }
     
+    
+    
     return(1);
 
 }
@@ -270,7 +272,8 @@ volatile uint16_t SetFaultCondition(volatile FAULT_OBJECT_t* fltobj)
             if(fltobj->criteria.counter >= fltobj->criteria.trip_cnt_threshold)
             {
                 // Call fault handler passing on the recent fault object
-                fltobj->status.bits.fault_status = 1; // set "fault status" bit
+                fltobj->criteria.counter = fltobj->criteria.trip_cnt_threshold; // Clamp counter
+                fltobj->status.bits.fault_status = true; // set "fault status" bit
 
                 // Set global fault flags and execute appropriate response
                 f_res &= ExecFaultHandler(fltobj);   
@@ -296,7 +299,8 @@ volatile uint16_t SetFaultCondition(volatile FAULT_OBJECT_t* fltobj)
             if(fltobj->criteria.counter >= fltobj->criteria.reset_cnt_threshold)
             {
                 // Reset the FAULT STAT flag of the fault object
-                fltobj->status.bits.fault_status = 0; // set "fault status" bit
+                fltobj->criteria.counter = fltobj->criteria.reset_cnt_threshold; // Clamp counter
+                fltobj->status.bits.fault_status = false; // clear "fault status" bit
                 
             }
 
@@ -510,7 +514,7 @@ volatile uint16_t CheckCPUResetRootCause(void)
  *          * a user defined function will be called (of form uint16_t xxxx(void) only)
  * 
  * ***********************************************************************************************/
-inline volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj)
+volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj)
 {
     volatile uint16_t f_ret = 1;
     
@@ -521,7 +525,7 @@ inline volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj)
     {
         // if fault is of class CATASTROPHIC, force main loop to reset CPU
         traplog.task_capture.op_mode = task_mgr.op_mode.value; // Log the most recent operating mode ID in the traps data structure 
-        traplog.task_capture.task_id = task_mgr.exec_task_id; // Log the most recent task ID in the traps data structure 
+        traplog.task_capture.task_id = task_mgr.task_queue.active_task_id; // Log the most recent task ID in the traps data structure 
         traplog.task_capture.fault_id = fltobj->id; // Log the fault object ID in the traps data structure 
 
         task_mgr.status.bits.global_fault = 1; // setting global fault bit
@@ -545,22 +549,20 @@ inline volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj)
 
     if(fltobj->flt_class.value & FLT_CLASS_WARNING)
     {
-        // if fault is of class WARNING, set error flag and force schedule in standby mode
+        // if fault is of class WARNING, set flag
         task_mgr.status.bits.global_warning = true; // set global warning bit 
-                                                    // and don't take further action
     }
 
     if(fltobj->flt_class.value & FLT_CLASS_FLAG)
     {
-        // if fault is of class NOTIFY, set error flag and force schedule in standby mode
-        task_mgr.status.bits.global_notify = true;  // setting global notify bit
-                                                    // and don't take further action
+        // if fault is of class NOTIFIFICATION FLAG, set flag
+        task_mgr.status.bits.global_flag = true;    // setting global notification flag bit
     }
 
     if(fltobj->flt_class.value & FLT_CLASS_USER_RESPONSE)
     {
         // If a user defined fault handler routine has been specified, 
-        // call/execute user defined function of type uint16_t xxxx(void) only
+        // call/execute user defined function of type uint16_t xxxx(void) 
         if(fltobj->trip_function != NULL)
         { f_ret = fltobj->trip_function(); } // Call/execute user defined function
     }        
@@ -602,7 +604,7 @@ inline volatile uint16_t ExecFaultHandler(volatile FAULT_OBJECT_t* fltobj)
  *          * a user defined function will be called (of form uint16_t xxxx(void) only)
  * 
  * ***********************************************************************************************/
-inline volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_class_code)
+volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_class_code)
 {
     
     // If Fault is of any other class than CATASTROPHIC, perform recovery from fault condition. 
@@ -650,7 +652,7 @@ inline volatile uint16_t ExecGlobalFaultFlagRelease(volatile uint16_t fault_clas
  *          * a user defined function will be called (of form uint16_t xxxx(void) only)
  * 
  * ***********************************************************************************************/
-inline volatile uint16_t ExecFaultFlagReleaseHandler(volatile FAULT_OBJECT_t* fltobj)
+volatile uint16_t ExecFaultFlagReleaseHandler(volatile FAULT_OBJECT_t* fltobj)
 {
     volatile uint16_t fres = 1;
     
