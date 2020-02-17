@@ -445,34 +445,6 @@ volatile uint16_t task_Idle(void) {
     return(1);
 }
 
-volatile uint16_t task_Stall(void) {
-// Idle tasks might be required to free up additional CPU load for higher
-// priority processes. THerefore it's recommended to leave at least 
-// one Idle cycle in each task list
-    Nop();
-    while(1);
-    return(1);
-}
-
-volatile uint16_t task_Blinky(void) {
-// Idle tasks might be required to free up additional CPU load for higher
-// priority processes. THerefore it's recommended to leave at least 
-// one Idle cycle in each task list
-    static uint16_t led_int;
-    Nop();
-    
-    if(DBGLED_TRIS)
-        DBGLED_INIT_OUTPUT;
-    
-    if(led_int++ > 1000){
-        DBGLED_TOGGLE;
-        led_int = 0;
-    }
-    
-    return(1);
-}
-
-
 /*!_RescueTimer_Interrupt()
  * ************************************************************************************************
  * Summary:

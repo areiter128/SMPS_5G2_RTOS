@@ -141,8 +141,8 @@ typedef enum {
 
     /* ===== USER FUNCTIONS LIST ===== */
 
-    TASK_STALL,
-    TASK_BLINKY,
+
+    
         
     /* ===== END OF USER FUNCTIONS ===== */
 
